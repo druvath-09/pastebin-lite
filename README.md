@@ -1,36 +1,125 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pastebin Lite
 
-## Getting Started
+A minimal Pastebin-like web application that allows users to store and share text content using a shareable link. Pastes can optionally expire based on time (TTL) or number of views.
 
-First, run the development server:
+This project was built as part of the **Aganitha Cognitive Solutions – Full Stack Developer Take Home Exercise (2026)**.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## 🚀 Features
+
+- Create text pastes via API or UI
+- Generate a unique, shareable link for each paste
+- Optional expiration using:
+  - Time-to-live (TTL in seconds)
+  - Maximum number of views
+- Automatic expiry handling
+- Read-only public paste view
+- Simple, minimal UI for creating and sharing pastes
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework:** Next.js (App Router)
+- **Backend:** Next.js API Routes
+- **Database:** PostgreSQL (Neon)
+- **ORM:** Prisma
+- **Hosting:** Vercel
+- **Language:** TypeScript
+
+---
+
+## 📦 API Endpoints
+
+### Create a Paste
+
+**Request Body**
+```json
+{
+  "content": "Hello World",
+  "ttl_seconds": 60,
+  "max_views": 3
+}
+```
+### Response
+```
+{
+  "id": "uuid",
+  "url": "https://<deployment-url>/p/<id>"
+}
+```
+### Fetch a Paste
+```
+GET /api/pastes/{id}
+
+```
+### Response
+```
+{
+  "content": "Hello World",
+  "remaining_views": 2,
+  "expires_at": "2026-01-29T11:24:00.634Z"
+}
+
+```
+Returns 404 if the paste is expired or does not exist.
+
+### 🌐 Frontend Routes
+
+## – Create a new paste
+```
+/p/{id} – View a paste in the browser
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 🗄️ Database Schema (Prisma)
+```
+model Paste {
+  id         String   @id
+  content    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime?
+  maxViews  Int?
+  views     Int      @default(0)
+}
+```
+## ⚙️ Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Create the following environment variables:
+```
+DATABASE_URL=postgresql://...
+NEXT_PUBLIC_BASE_URL=https://your-vercel-url
+```
+## 🧠 Design Decisions
+```
+Prisma + Neon were chosen for type safety and serverless-friendly PostgreSQL.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+force-dynamic API routes are used to prevent Next.js static optimization for database-backed endpoints.
 
-## Learn More
+Expiry logic is enforced on every read to ensure correctness.
 
-To learn more about Next.js, take a look at the following resources:
+The frontend paste view fetches data via API to keep a single source of truth.
+```
+## 🔮 Future Improvements
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Authentication & private pastes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Rate limiting
 
-## Deploy on Vercel
+Paste deletion
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Syntax highlighting
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Encryption at rest
+
+UI enhancements
+
+## 📎 Links
+
+Live Demo: https://pastebin-lite-eight-steel.vercel.app/
+
+GitHub Repo: https://github.com/druvath-09/pastebin-lite
+
+## 👤 Author
+
+Ganta Druvath Kumar

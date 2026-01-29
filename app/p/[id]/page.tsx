@@ -1,4 +1,3 @@
-import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 
 interface PageProps {
@@ -6,28 +5,22 @@ interface PageProps {
 }
 
 export default async function PastePage({ params }: PageProps) {
-  const { id } = await params; // ✅ unwrap params
+  const { id } = await params;
 
-  const paste = await prisma.paste.findUnique({
-    where: { id },
-  });
+  const res = await fetch(
+    `http://localhost:3000/api/pastes/${id}`,
+    { cache: "no-store" }
+  );
 
-  if (!paste) {
+  if (!res.ok) {
     notFound();
   }
 
-  const now = Date.now();
-
-  if (
-    (paste.expiresAt && now > paste.expiresAt.getTime()) ||
-    (paste.maxViews !== null && paste.views >= paste.maxViews)
-  ) {
-    notFound();
-  }
+  const data = await res.json();
 
   return (
     <main style={{ padding: "2rem", fontFamily: "monospace" }}>
-      <pre>{paste.content}</pre>
+      <pre>{data.content}</pre>
     </main>
   );
 }

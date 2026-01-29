@@ -4,10 +4,11 @@ import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/prisma";
 
 export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
+  _req: Request,
+  context: { params: Promise<{ id: string }> }
 ) {
-  const id = params.id;
+  // ✅ FIX: await params
+  const { id } = await context.params;
 
   // 1️⃣ Fetch paste
   const paste = await prisma.paste.findUnique({
@@ -33,7 +34,7 @@ export async function GET(
   // 4️⃣ Exceeded max views
   if (paste.maxViews !== null && paste.views >= paste.maxViews) {
     return NextResponse.json(
-      { error: "Paste expired" },
+      { error: "Not found" },
       { status: 404 }
     );
   }
@@ -48,11 +49,14 @@ export async function GET(
 
   // 6️⃣ Return content
   return NextResponse.json(
-    {
-      id: paste.id,
-      content: paste.content,
-      views: paste.views + 1,
-    },
-    { status: 200 }
-  );
+  {
+    content: paste.content,
+    remaining_views:
+      paste.maxViews === null
+        ? null
+        : paste.maxViews - (paste.views + 1),
+    expires_at: paste.expiresAt,
+  },
+  { status: 200 }
+);
 }

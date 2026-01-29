@@ -1,26 +1,33 @@
+import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function PastePage({ params }: PageProps) {
-  const res = await fetch(
-    `http://localhost:3000/api/pastes/${params.id}`,
-    { cache: "no-store" }
-  );
+  const { id } = await params; // ✅ unwrap params
 
-  const data = await res.json();
+  const paste = await prisma.paste.findUnique({
+    where: { id },
+  });
 
-  if (!res.ok) {
+  if (!paste) {
+    notFound();
+  }
+
+  const now = Date.now();
+
+  if (
+    (paste.expiresAt && now > paste.expiresAt.getTime()) ||
+    (paste.maxViews !== null && paste.views >= paste.maxViews)
+  ) {
     notFound();
   }
 
   return (
     <main style={{ padding: "2rem", fontFamily: "monospace" }}>
-      <pre>{data.content}</pre>
-      <p>Remaining views: {data.remaining_views}</p>
-      <p>Expires at: {data.expires_at}</p>
+      <pre>{paste.content}</pre>
     </main>
   );
 }
